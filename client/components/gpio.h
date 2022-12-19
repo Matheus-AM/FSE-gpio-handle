@@ -29,6 +29,8 @@ public:
     void showState();
     void changeState();
     uint8_t getGpioPin();
+    uint8_t getState();
+
 };
 
 class Gpio
@@ -50,10 +52,12 @@ public:
     Pin* sTempHumid;
     Gpio(json data);
     void refreshAll(uint8_t* states);
+    void handle_smoke(uint8_t* states);
 };
+
 
 
 void *gpio_handler(void* args);
 
-int readDHT(int pin);
+float* readDHT(int pin);
 

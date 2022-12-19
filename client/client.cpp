@@ -2,25 +2,30 @@
 
 uint8_t* varCompartilhada;
 
+// #define DEV
+
 void comunicacaoServidorTCP(int socketClient)
 {
+    uint8_t buffer[14];
     int bytesRecebidos;
     int aux;
 
     while(1) {
         int aux;
-        aux = send(socketClient, varCompartilhada, 14, 0);
+        aux = send(socketClient, buffer, 14, 0);
         if(aux != 14){
 	    	printf("Erro no envio: numero de bytes enviados diferente do esperado\n");
             break;
         }
-        aux = recv(socketClient, varCompartilhada, 14, 0);
+        aux = recv(socketClient, buffer, 14, 0);
     	if(aux < 0){
             printf("Não recebeu o total de bytes enviados\n");
             break;
         }
-        sleep(0.5);
-	}
+        memcpy(varCompartilhada, buffer, 14);
+        sleep(1);
+        memcpy(buffer, varCompartilhada, 14);
+    }
     return;
 
 }

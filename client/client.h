@@ -13,9 +13,6 @@
 #include <arpa/inet.h>
 #include "components/gpio.h"
 
-
-#define DEV
-
 #define MAXTIMINGS 100
 
 #define IP_SERVER "127.0.0.1"

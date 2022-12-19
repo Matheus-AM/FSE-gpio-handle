@@ -16,6 +16,7 @@
 #define repeat(x) for(int it=0;it<x;it++)
 
 void* menu(void *arg);
+int handle_keypress(char c, uint8_t* state);
 
 using json = nlohmann::json;
 
@@ -51,4 +52,6 @@ public:
     SensorWindow* sTempHumid;
     MenuWindow(json data);
     void refreshAll(uint8_t* states);
+    void printChoices();
+    void d();
 };

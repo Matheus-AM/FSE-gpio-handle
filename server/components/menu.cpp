@@ -18,6 +18,9 @@ MenuWindow::MenuWindow(json data){
     sTempHumid = new SensorWindow(data["sensor_temperatura"][0], std::pair<int,int>(15, 51));
 }
 void MenuWindow::refreshAll(uint8_t* states){
+    start_color();
+    init_pair(1, COLOR_RED, COLOR_RED);
+    init_pair(2, COLOR_GREEN, COLOR_GREEN);
     light1->refreshIt(states[1]);
     light2->refreshIt(states[2]);
     air->refreshIt(states[3]);
@@ -30,6 +33,21 @@ void MenuWindow::refreshAll(uint8_t* states){
     sCountIn->refreshIt(states[10]);
     sCountOut->refreshIt(states[11]);
     sTempHumid->refreshIt(states[12]);
+}
+
+void MenuWindow::d(){
+    delete light1;
+    delete light2;
+    delete air;
+    delete projector;
+    delete alarmBuzz;
+    delete sPresence;
+    delete sSmoke;
+    delete sWindow;
+    delete sDoor;
+    delete sCountIn;
+    delete sCountOut;
+    delete sTempHumid;
 }
 
 SensorWindow::SensorWindow(json sensor, std::pair<int,int> pyx){
@@ -48,8 +66,41 @@ SensorWindow::SensorWindow(json sensor, std::pair<int,int> pyx){
 void SensorWindow::refreshIt(int state){
     SensorWindow::state = state;
     box(win, 0, 0);
-    mvwprintw(win, 1, tag.size()+3, "%s", (state? "Y" : "N"));
+    wattron(win, COLOR_PAIR((state? 2 : 1)));
+    if(type == "dth22"){
+        mvwprintw(win, 1, tag.size()+3, "%d", state);
+    }else{
+        mvwprintw(win, 1, tag.size()+3, " ");
+    }
+    wattroff(win, COLOR_PAIR((state? 2 : 1)));
+
     wrefresh(win);
+}
+
+int handle_keypress(char c, uint8_t* state){
+    switch (c)
+    {
+    case '1':
+        state[1] = (state[1]? 0 : 1); 
+        break;
+    case '2':
+        state[2] = (state[2]? 0 : 1); 
+        break;
+    case '3':
+        state[3] = (state[3]? 0 : 1); 
+        break;
+    case '4':
+        state[4] = (state[4]? 0 : 1); 
+        break;
+    case '5':
+        state[5] = (state[5]? 0 : 1); 
+        break;
+    case '0':
+        return 1;
+    default:
+        break;
+    }
+    return 0;
 }
 
 void* menu(void *arg){
@@ -60,19 +111,23 @@ void* menu(void *arg){
     char c = 0;
     uint8_t* response = (uint8_t*)arg;
     MenuWindow main_menu(data);
-    int posit = 0;
-    move(21, 0);
-
+    move(18, 0);
+    WINDOW* commWin = newwin(3, 100, 18, 0);
+    refresh();
+    box(commWin, 0, 0);
+    mvwprintw(commWin, 1, 1, "COMANDOS        |  1 = L_01 | 2 = L_02 | 3 = AR | 4 = Proj | 5 = Alrm | 0 = exit |");
+    wrefresh(commWin);
     while(1){
-        if(!response[13]){
-            main_menu.refreshAll(response);
-            move(21, posit);
-            response[13] = 0;
-        } 
-        posit++;
         refresh();
-        sleep(1);
+        move(21, 0);
+        char c = getch();
+        if(handle_keypress(c, response)){
+            break;
+        }
+        main_menu.refreshAll(response);
     }    
     endwin();
+
+    main_menu.d();
     return NULL;
 }

@@ -44,18 +44,21 @@ void* criaServidor(void *arg){
 
 
 void comunicacaoClienteTCP(int socketClient) {
+    uint8_t buffer[14];
 	int tamanhoRecebido;
 
-    if((tamanhoRecebido = recv(socketClient, varCompartilhada, 14, 0)) < 0)
+    if((tamanhoRecebido = recv(socketClient, buffer, 14, 0)) < 0)
 		printf("Erro no recv()\n");
 	while (tamanhoRecebido > 0) {
-		if(send(socketClient, varCompartilhada, tamanhoRecebido, 0) != tamanhoRecebido)
+		if(send(socketClient, buffer, tamanhoRecebido, 0) != tamanhoRecebido)
 			printf("Erro no envio - send()\n");
-		
-		if((tamanhoRecebido = recv(socketClient, varCompartilhada, 14, 0)) < 0)
+	
+		if((tamanhoRecebido = recv(socketClient, buffer, 14, 0)) < 0)
 			printf("Erro no recv2()\n");
+        memcpy(varCompartilhada, buffer, 14);
+        sleep(1);
+        memcpy(buffer, varCompartilhada, 14);
 
-        sleep(0.5);
 	}
 
 }
@@ -68,8 +71,9 @@ int main(int argc, char **argv)
 
     int r = pthread_create(&menu_tid, NULL, menu, varCompartilhada);
     int r2 = pthread_create(&server_tid, NULL, criaServidor, NULL);
+    if(!pthread_join(menu_tid, NULL))
+        kill(r2, SIGKILL);
     pthread_join(server_tid, NULL);
-    pthread_join(menu_tid, NULL);
 
     return 0;
 }

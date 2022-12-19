@@ -1,6 +1,6 @@
 #include "gpio.h"
 
-#define DEV
+// #define DEV
 
 Gpio::Gpio(json data){
     light1 = new Pin(data["outputs"][0], 0);
@@ -18,6 +18,7 @@ Gpio::Gpio(json data){
 }
 
 void Gpio::refreshAll(uint8_t* states){
+    handle_smoke(states);
     light1->refreshState(&states[1]);
     light2->refreshState(&states[2]);
     air->refreshState(&states[3]);
@@ -30,6 +31,12 @@ void Gpio::refreshAll(uint8_t* states){
     sCountIn->refreshState(&states[10]);
     sCountOut->refreshState(&states[11]);
     sTempHumid->refreshState(&states[12]);
+}
+
+void Gpio::handle_smoke(uint8_t * states){
+    if(states[7]){
+        states[5] = states[7];
+    }
 }
 
 Pin::Pin(json jgpio, uint8_t isIn){
@@ -81,9 +88,13 @@ uint8_t Pin::getGpioPin(){
     return gpioPin;
 }
 
+uint8_t Pin::getState(){
+    return state;
+}
 
 
-int readDHT(int pin) {
+
+float* readDHT(int pin) {
 
     int bits[250], data[100];
     int bitidx = 0;
@@ -138,23 +149,20 @@ int readDHT(int pin) {
     }
 #endif
 
-    printf("Data (%d): 0x%x 0x%x 0x%x 0x%x 0x%x\n", j, data[0], data[1], data[2], data[3], data[4]);
-
     if ((j >= 39) &&
         (data[4] == ((data[0] + data[1] + data[2] + data[3]) & 0xFF)) ) {
         // yay!
-        float f, h;
-        h = data[0] * 256 + data[1];
-        h /= 10;
+        float* f = new float[2];
+        f[0] = data[0] * 256 + data[1];
+        f[0] /= 10;
 
-        f = (data[2] & 0x7F)* 256 + data[3];
-            f /= 10.0;
-            if (data[2] & 0x80)  f *= -1;
-        printf("Temp =  %.1f *C, Hum = %.1f \n", f, h);
-        return 1;
+        f[1] = (data[2] & 0x7F)* 256 + data[3];
+            f[1] /= 10.0;
+            if (data[2] & 0x80)  f[1] *= -1;
+        return f;
     }
 
-  return 0;
+  return NULL;
 }
 
 
@@ -165,15 +173,16 @@ void *gpio_handler(void* args){
     Gpio main_gpio(data);
     
     uint8_t* response = (uint8_t*)args;
-
+    float* dht;
     while (1)
     {
 
-        main_gpio.refreshAll(response);
         delay(200);
-
 #ifndef DEV
-	    readDHT(sTempHumid.gpioPin);
+	    dht = readDHT(main_gpio.sTempHumid->getGpioPin());
+        response[12] = dht[0];
+        response[13] = dht[1];
 #endif 
+        main_gpio.refreshAll(response);
     }
 }
