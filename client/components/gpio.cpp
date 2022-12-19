@@ -94,7 +94,7 @@ uint8_t Pin::getState(){
 
 
 
-float* readDHT(int pin) {
+int readDHT(int pin, uint8_t* states) {
 
     int bits[250], data[100];
     int bitidx = 0;
@@ -152,17 +152,17 @@ float* readDHT(int pin) {
     if ((j >= 39) &&
         (data[4] == ((data[0] + data[1] + data[2] + data[3]) & 0xFF)) ) {
         // yay!
-        float* f = new float[2];
-        f[0] = data[0] * 256 + data[1];
-        f[0] /= 10;
+        
+        states[12] = data[0] * 256 + data[1];
+        states[12] /= 10;
 
-        f[1] = (data[2] & 0x7F)* 256 + data[3];
-            f[1] /= 10.0;
-            if (data[2] & 0x80)  f[1] *= -1;
-        return f;
+        states[13] = (data[2] & 0x7F)* 256 + data[3];
+            states[13] /= 10.0;
+            if (data[2] & 0x80)  states[13] *= -1;
+        return 1;
     }
 
-  return NULL;
+  return 0;
 }
 
 
@@ -179,9 +179,8 @@ void *gpio_handler(void* args){
 
         delay(200);
 #ifndef DEV
-	    dht = readDHT(main_gpio.sTempHumid->getGpioPin());
-        response[12] = dht[0];
-        response[13] = dht[1];
+	    readDHT(main_gpio.sTempHumid->getGpioPin(), response);
+        printf("temp: %f, hum %f", response[12], response[13]);
 #endif 
         main_gpio.refreshAll(response);
     }

@@ -59,5 +59,4 @@ public:
 
 void *gpio_handler(void* args);
 
-float* readDHT(int pin);
-
+int readDHT(int pin, uint8_t* states);
