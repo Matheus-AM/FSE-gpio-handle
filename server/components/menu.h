@@ -49,7 +49,8 @@ public:
     SensorWindow* sDoor;
     SensorWindow* sCountIn;
     SensorWindow* sCountOut;
-    SensorWindow* sTempHumid;
+    SensorWindow* sTemp;
+    SensorWindow* sHumid;
     MenuWindow(json data);
     void refreshAll(uint8_t* states);
     void printChoices();

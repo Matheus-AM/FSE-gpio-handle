@@ -15,7 +15,8 @@ MenuWindow::MenuWindow(json data){
     sDoor = new SensorWindow(data["inputs"][3], std::pair<int,int>(12, 0));
     sCountIn = new SensorWindow(data["inputs"][4], std::pair<int,int>(12, 51));
     sCountOut = new SensorWindow(data["inputs"][5], std::pair<int,int>(15, 0));
-    sTempHumid = new SensorWindow(data["sensor_temperatura"][0], std::pair<int,int>(15, 51));
+    sTemp = new SensorWindow(data["sensor_temperatura"][0], std::pair<int,int>(18, 0));
+    sHumid = new SensorWindow(data["sensor_temperatura"][0], std::pair<int,int>(18, 51));
 }
 void MenuWindow::refreshAll(uint8_t* states){
     start_color();
@@ -32,7 +33,8 @@ void MenuWindow::refreshAll(uint8_t* states){
     sDoor->refreshIt(states[9]);
     sCountIn->refreshIt(states[10]);
     sCountOut->refreshIt(states[11]);
-    sTempHumid->refreshIt(states[12]);
+    sTemp->refreshIt(states[12]);
+    sHumid->refreshIt(states[13]);
 }
 
 void MenuWindow::d(){
@@ -47,7 +49,8 @@ void MenuWindow::d(){
     delete sDoor;
     delete sCountIn;
     delete sCountOut;
-    delete sTempHumid;
+    delete sTemp;
+    delete sHumid;
 }
 
 SensorWindow::SensorWindow(json sensor, std::pair<int,int> pyx){
@@ -125,6 +128,7 @@ void* menu(void *arg){
             break;
         }
         main_menu.refreshAll(response);
+        sleep(0.4);
     }    
     endwin();
 

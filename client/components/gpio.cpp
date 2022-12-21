@@ -14,7 +14,8 @@ Gpio::Gpio(json data){
     sDoor = new Pin(data["inputs"][3], 1);
     sCountIn = new Pin(data["inputs"][4], 1);
     sCountOut = new Pin(data["inputs"][5], 1);
-    sTempHumid = new Pin(data["sensor_temperatura"][0], 0);// 1-Wire
+    sTemp = new Pin(data["sensor_temperatura"][0], 1);// 1-Wire
+    sHumid = new Pin(data["sensor_temperatura"][0], 1);// 1-Wire
 }
 
 void Gpio::refreshAll(uint8_t* states){
@@ -30,7 +31,8 @@ void Gpio::refreshAll(uint8_t* states){
     sDoor->refreshState(&states[9]);
     sCountIn->refreshState(&states[10]);
     sCountOut->refreshState(&states[11]);
-    sTempHumid->refreshState(&states[12]);
+    sTemp->refreshState(&states[12]);
+    sHumid->refreshState(&states[13]);
 }
 
 void Gpio::handle_smoke(uint8_t * states){
@@ -152,13 +154,19 @@ int readDHT(int pin, uint8_t* states) {
     if ((j >= 39) &&
         (data[4] == ((data[0] + data[1] + data[2] + data[3]) & 0xFF)) ) {
         // yay!
-        
-        states[12] = data[0] * 256 + data[1];
-        states[12] /= 10;
+        float t, h;
+        t = data[0] * 256 + data[1];
+        t /= 10;
 
-        states[13] = (data[2] & 0x7F)* 256 + data[3];
-            states[13] /= 10.0;
-            if (data[2] & 0x80)  states[13] *= -1;
+        h = (data[2] & 0x7F)* 256 + data[3];
+            h /= 10.0;
+            if (data[2] & 0x80)  h *= -1;
+        if(t > 1){
+            states[12] = (uint8_t)t;
+        }
+        if(h > 1){
+            states[13] = (uint8_t)h;
+        }
         return 1;
     }
 
@@ -177,10 +185,10 @@ void *gpio_handler(void* args){
     while (1)
     {
 
-        delay(200);
+        delay(400);
 #ifndef DEV
-	    readDHT(main_gpio.sTempHumid->getGpioPin(), response);
-        printf("temp: %f, hum %f", response[12], response[13]);
+	    readDHT(main_gpio.sTemp->getGpioPin(), response);
+        printf("temp: %d, hum %d", response[12], response[13]);
 #endif 
         main_gpio.refreshAll(response);
     }

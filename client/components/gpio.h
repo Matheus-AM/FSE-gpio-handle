@@ -49,7 +49,8 @@ public:
     Pin* sCountIn;
     Pin* sCountOut;
 
-    Pin* sTempHumid;
+    Pin* sTemp;
+    Pin* sHumid;
     Gpio(json data);
     void refreshAll(uint8_t* states);
     void handle_smoke(uint8_t* states);
